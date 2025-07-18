@@ -1,39 +1,48 @@
-
 # write a calculator that can handle basic arithmetic operations,and the calculator with terminal interface
 # and can evaluate expressions from the command line.
 import sys
 import operator
 import re
 import argparse
+import tkinter as tk
+from tkinter import messagebox
 
 def evaluate_expression(expression):
-    # Define the supported operations
-    operations = {
-        '+': operator.add,
-        '-': operator.sub,
-        '*': operator.mul,
-        '/': operator.truediv
-    }
+    # 只允许数字、运算符和括号
+    if not re.match(r'^[\d+\-*/().\s]+$', expression):
+        raise ValueError("Expression contains invalid characters")
+    try:
+        result = eval(expression, {"__builtins__": None}, {})
+        return result
+    except Exception as e:
+        raise ValueError(f"Invalid expression: {e}")
 
-    # Split the expression into tokens
-    tokens = re.findall(r'\d+|[+\-*/]', expression)
+def gui_calculate():
+    expr = entry.get()
+    try:
+        result = evaluate_expression(expr)
+        result_label.config(text=f"结果: {result}")
+    except Exception as e:
+        messagebox.showerror("错误", str(e))
 
-    if len(tokens) < 3 or len(tokens) % 2 == 0:
-        raise ValueError("Invalid expression format")
+def run_gui():
+    window = tk.Tk()
+    window.title("简易计算器")
 
-    # Initialize the result with the first number
-    result = float(tokens[0])
+    tk.Label(window, text="请输入算术表达式:").pack()
+    global entry
+    entry = tk.Entry(window, width=30)
+    entry.pack()
 
-    # Iterate through the tokens and apply operations
-    for i in range(1, len(tokens), 2):
-        op = tokens[i]
-        next_num = float(tokens[i + 1])
-        if op in operations:
-            result = operations[op](result, next_num)
-        else:
-            raise ValueError(f"Unsupported operation: {op}")
+    calc_btn = tk.Button(window, text="计算", command=gui_calculate)
+    calc_btn.pack()
 
-    return result
+    global result_label
+    result_label = tk.Label(window, text="结果: ")
+    result_label.pack()
+
+    window.mainloop()
+
 def main():
     parser = argparse.ArgumentParser(description='Simple Calculator')
     parser.add_argument('expression', type=str, help='Arithmetic expression to evaluate')
@@ -68,7 +77,11 @@ def main():
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 if __name__ == "__main__":
-    main()
+    import sys
+    if len(sys.argv) == 1:
+        run_gui()
+    else:
+        main()
 # This script provides a simple command-line calculator that can evaluate basic arithmetic expressions.
 # It supports addition, subtraction, multiplication, and division.
 # The user can input an expression in the form of "number operator number" (e.g., "3 + 4 * 2").
@@ -77,4 +90,4 @@ if __name__ == "__main__":
 # The calculator can be run from the terminal with an expression as an argument.
 # Usage example: ./calculator.py "3 + 4 * 2"  
 # The script will output the result of the expression or an error message if the input is invalid.
-# Usage example: ./calculator.py "3 + 4 * 2"  
+# Usage example: ./calculator.py "3 + 4 * 2"
